@@ -1,0 +1,55 @@
+from flask import Flask, request, jsonify
+import requests
+
+app = Flask(__name__)
+
+
+LINE_ACCESS_TOKEN = '+8M2DNpX9aSAvIqyCQikmaYA4cXUYGIh9Xv4fVLyHyW+OVa49UkKrPrqmEYG4nJblAuSOxtpc90RZuAX8nXTIH3FlGACxyqMB5P1x9GJSpaDziz1PNRX4f1gCcwiVxZS5YDJJRt79P8jXZHYPmDTdQdB04t89/1O/w1cDnyilFU='
+LINE_USER_ID = 'Ud16abf5943c241dea0f049772f3d4ad2'
+LINE_API_URL = 'https://api.line.me/v2/bot/message/push'
+
+# web hook endpoint (vikunja's side)
+@app.route('/webhook', methods=['POST'])
+def vikunja_to_line():
+    payload = request.json #GET
+    
+    event_name = payload.get('event_name', 'มีการอัปเดตระบบ')
+    task_data = payload.get('data', {}).get('task', {})
+    task_title = task_data.get('title', 'ไม่ได้ระบุชื่องาน')
+    
+    message_text = ""
+    if event_name == 'task.created':
+        message_text = f"🆕 [ฮีโร่รวมพล มีงานใหม่ต้องทำ!]\nชื่องาน: {task_title}"
+        
+    elif event_name == 'task.updated':
+        message_text = f"{task_title} มีการอัปเดต!!"
+        
+    elif event_name == 'task.deleted':
+        message_text = f"{task_title} ถูกลบออกแล้ว"
+        
+    elif event_name == 'task.comment.created':
+        comment_text = payload.get('data', {}).get('comment', {}).get('text', 'ไม่มีข้อความ')
+        message_text = f"💬 [คอมเมนต์ใหม่]\nงาน: {task_title}\nข้อความ: {comment_text}"
+        
+    elif event_name in ['task.overdue', 'tasks.overdue']:
+        message_text = f"🚨 [กรุงโรมกำลังลุกเป็นไฟ!]\n{task_title} ถึงเดดไลน์แล้ว!"
+        
+    else:
+        return jsonify({'status': 'ignored', 'message': f'Unhandled event: {event_name}'}), 200
+    
+    # Line messaging API
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {LINE_ACCESS_TOKEN}'
+    }
+    line_payload = {
+        "to": LINE_USER_ID,
+        "messages": [{"type": "text", "text": message_text}]
+    }
+
+    #POST
+    response = requests.post(LINE_API_URL, headers=headers, json=line_payload)
+    return jsonify({'status': 'success', 'message': 'Sent to LINE'}), 200
+
+if __name__ == '__main__':
+    app.run(port=5000, debug=True)
