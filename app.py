@@ -17,24 +17,28 @@ def vikunja_to_line():
     #GET
     event_name = payload.get('event_name', 'มีการอัปเดต')
     task_data = payload.get('data', {}).get('task', {})
+    project_title = payload.get('data', {}).get('project', {}).get('title', 'ไม่ระบุโปรเจกต์')
     task_title = task_data.get('title', 'ไม่ได้ระบุชื่องาน')
     
     message_text = ""
     if event_name == 'task.created':
-        message_text = f"🆕 [ฮีโร่รวมพล มีงานใหม่ต้องทำ!]\nชื่องาน: {task_title}"
+        message_text = f"🆕 [ฮีโร่รวมพล มีงานใหม่ต้องทำ!]\nโปรเจกต์: {project_title} ชื่องาน: {task_title}"
         
     elif event_name == 'task.updated':
-        message_text = f"{task_title} มีการอัปเดต!!"
+        message_text = f"โปรเจกต์: {project_title} ชื่องาน: {task_title} มีการอัปเดต"
         
     elif event_name == 'task.deleted':
-        message_text = f"{task_title} ถูกลบออกแล้ว"
+        message_text = f"โปรเจกต์: {project_title} ชื่องาน: {task_title} ถูกลบออกแล้ว"
+
+    elif event_name == 'task.completed':
+        message_text = f"✅ ขอบคุณที่ทำงานหนัก \nโปรเจกต์: {project_title} ชื่องาน: {task_title} เสร็จสมบูรณ์แล้ว!"
         
     elif event_name == 'task.comment.created':
         comment_text = payload.get('data', {}).get('comment', {}).get('text', 'ไม่มีข้อความ')
-        message_text = f"💬 [คอมเมนต์ใหม่]\nงาน: {task_title}\nข้อความ: {comment_text}"
+        message_text = f"💬 [มีคอมเมนต์ใหม่]\nโปรเจกต์: {project_title} ชื่องาน: {task_title}\nข้อความ: {comment_text}"
         
     elif event_name in ['task.overdue', 'tasks.overdue']:
-        message_text = f"🚨 [กรุงโรมกำลังลุกเป็นไฟ!]\n{task_title} ถึงเดดไลน์แล้ว!"
+        message_text = f"🚨 [กรุงโรมกำลังลุกเป็นไฟ!]\nโปรเจกต์: {project_title} ชื่องาน: {task_title} ถึงเดดไลน์แล้ว!"
         
     else:
         return jsonify({'status': 'ignored', 'message': f'Unhandled event: {event_name}'}), 200
