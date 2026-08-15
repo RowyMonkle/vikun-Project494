@@ -27,6 +27,8 @@ def vikunja_to_line():
     elif event_name == 'task.updated':
         if payload.get('data', {}).get('task', {}).get('completed', True):
             message_text = f"✅ ขอบคุณที่ทำงานหนัก \nโปรเจกต์: {project_title} ชื่องาน: {task_title} เสร็จสมบูรณ์แล้ว!"
+        elif payload.get('data', {}).get('task', {}).get('undone', False):
+            message_text = f"🔄 งานถูกเปลี่ยนสถานะ \nโปรเจกต์: {project_title} ชื่องาน: {task_title} ถูกเปลี่ยนเป็นยังไม่เสร็จ"
         else:
             message_text = f"โปรเจกต์: {project_title} ชื่องาน: {task_title} มีการอัปเดต"
         
