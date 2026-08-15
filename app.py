@@ -25,7 +25,7 @@ def vikunja_to_line():
         message_text = f"🆕 [ฮีโร่รวมพล มีงานใหม่ต้องทำ!]\nโปรเจกต์: {project_title} ชื่องาน: {task_title}"
         
     elif event_name == 'task.updated':
-        if payload.get('data', {}).get('task', {}).get('completed', False):
+        if payload.get('data', {}).get('task', {}).get('completed', True):
             message_text = f"✅ ขอบคุณที่ทำงานหนัก \nโปรเจกต์: {project_title} ชื่องาน: {task_title} เสร็จสมบูรณ์แล้ว!"
         else:
             message_text = f"โปรเจกต์: {project_title} ชื่องาน: {task_title} มีการอัปเดต"
